@@ -4,15 +4,37 @@ exports.handler = async function (context, event, callback) {
   const twiml = new Twilio.twiml.MessagingResponse();
   const reply = (msg) => { twiml.message(msg); callback(null, twiml); };
 
+  // Pass-through: anything that isn't a scoreboard text goes to the number's
+  // previous handler (FORWARD_URL, e.g. a Google Apps Script) unchanged.
+  const forward = async () => {
+    const url = context.FORWARD_URL;
+    if (!url) return callback(null, new Twilio.twiml.MessagingResponse());
+    try {
+      const params = new URLSearchParams();
+      for (const [k, v] of Object.entries(event)) if (typeof v === 'string') params.append(k, v);
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
+        redirect: 'follow',
+      });
+      const res = new Twilio.Response();
+      res.appendHeader('Content-Type', r.headers.get('content-type') || 'text/xml');
+      res.setBody(await r.text());
+      return callback(null, res);
+    } catch (err) {
+      console.error('forward failed', err);
+      return callback(null, new Twilio.twiml.MessagingResponse());
+    }
+  };
+
   try {
     const body = String(event.Body || '').trim();
     const from = event.From;
     const roster = h.loadRoster();
     const person = roster[from];
 
-    if (!person) {
-      return reply("This number isn't on the SWTHZ Black Friday roster. Ask your manager to add you.");
-    }
+    if (!person) return forward();
 
     const list = await h.getList(context);
     const cmd = body.toLowerCase();
@@ -46,9 +68,7 @@ exports.handler = async function (context, event, callback) {
     const set = h.parseSetTotal(body);
     if (set) {
       const role = person.role || 'staff';
-      if (role !== 'manager' && role !== 'admin') {
-        return reply('Only studio managers can set a total. To log a sale, text +1 PV, +1 Chandler or +1 Salt River.');
-      }
+      if (role !== 'manager' && role !== 'admin') return forward();
       const code = set.code || person.studio;
       if (role === 'manager' && code !== person.studio) {
         return reply(`You can only set the ${h.LOCATIONS[person.studio]} total.`);
@@ -66,7 +86,9 @@ exports.handler = async function (context, event, callback) {
     }
 
     const entry = h.parseEntry(body);
-    if (!entry || entry.error) {
+    // Not a scoreboard text (no studio named and no +/- sign) -> pass it through
+    if (!entry || (entry.error && !entry.code && !/^[+-]/.test(body))) return forward();
+    if (entry.error) {
       return reply('Format: +1 PV, +2 Chandler, +1 Salt River (or -1 PV to fix). Text SCORE for standings, UNDO to remove your last entry. Managers: text just the number (e.g. 153) to set your studio total.');
     }
 
