@@ -17,6 +17,15 @@ exports.handler = async function (context, event, callback) {
     const list = await h.getList(context);
     const cmd = body.toLowerCase();
 
+    // "RESET ALL" (admins only) -> wipe the whole board back to zero
+    if (cmd.replace(/\s+/g, ' ') === 'reset all') {
+      if ((person.role || 'staff') !== 'admin') return reply('Only admins can reset the board.');
+      const svc = context.getTwilioClient().sync.v1.services(context.SYNC_SERVICE_SID);
+      try { await svc.syncLists('bf-entries').remove(); } catch (e) { if (e.status !== 404) throw e; }
+      await svc.syncLists.create({ uniqueName: 'bf-entries' });
+      return reply('🧹 Board wiped. Every studio is back to 0.');
+    }
+
     // "score" / "scores" -> current standings
     if (cmd === 'score' || cmd === 'scores' || cmd === 'board') {
       const s = h.summarize(await h.allItems(list), context);
