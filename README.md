@@ -35,6 +35,7 @@ Go to Settings → **Environment Variables**:
 | `DISPLAY_NUMBER` | `(480) 555-0199`, the Twilio number staff text to |
 | `ADMIN_KEY` | any long random word, used for resetting |
 | `BOARD_TITLE` | `SWTHZ Black Friday Showdown` |
+| `FORWARD_URL` | *(optional)* the number's previous incoming-message webhook. Texts that aren't scoreboard commands, or that come from numbers not on the roster, are passed to it unchanged |
 
 Under Settings → **Dependencies**, make sure `twilio` is listed (it is by default). Then click **Deploy All**.
 
