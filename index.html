@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SWTHZ Black Friday Showdown</title>
+<style>
+  :root {
+    --bg: #0b0b0d; --panel: #16161a; --line: #26262c; --text: #f4f1ea; --muted: #8d8a85;
+    --gold: #e8b64c; --silver: #c9ccd3; --bronze: #c8865a; --heat: #ff5a36;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(1200px 600px at 50% -10%, #2a1408 0%, var(--bg) 60%);
+    color: var(--text); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    height: 100vh; overflow: hidden; padding: 2.4vh 2.4vw;
+    display: flex; flex-direction: column;
+  }
+  header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 2.2vh; flex: 0 0 auto; }
+  .brand { font-weight: 900; letter-spacing: .32em; font-size: clamp(12px, 1.2vw, 16px); color: var(--heat); }
+  h1 { font-size: min(7vh, 4.4vw); font-weight: 900; letter-spacing: -.02em; line-height: 1; text-transform: uppercase; }
+  .live { display: inline-flex; align-items: center; gap: 8px; font-size: min(1.9vh, 1vw); color: var(--muted); letter-spacing: .12em; text-transform: uppercase; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #2ecc71; box-shadow: 0 0 0 0 rgba(46,204,113,.6); animation: pulse 1.8s infinite; }
+  .dot.off { background: #888; animation: none; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(46,204,113,0); } 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); } }
+
+  .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vw; flex: 1 1 auto; min-height: 0; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+    padding: 3vh 2vw; position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: center;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1), border-color .3s;
+  }
+  .card.home { border-color: var(--heat); }
+  .card.bump { animation: bump .9s ease; }
+  @keyframes bump { 0% { transform: scale(1); } 25% { transform: scale(1.04); box-shadow: 0 0 60px rgba(255,90,54,.45); } 100% { transform: scale(1); } }
+  .rank { font-size: min(2.2vh, 1.3vw); font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+  .r1 .rank { color: var(--gold); } .r2 .rank { color: var(--silver); } .r3 .rank { color: var(--bronze); }
+  .loc { font-size: min(4.6vh, 2.6vw); font-weight: 800; margin: 6px 0 4px; }
+  .score { font-size: min(22vh, 12vw); font-weight: 900; line-height: .95; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+  .r1 .score { color: var(--gold); }
+  .goal { margin-top: 14px; }
+  .bar { height: 1.4vh; background: #26262c; border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: linear-gradient(90deg, #ff8a3d, var(--heat)); border-radius: 99px; transition: width .8s ease; }
+  .goal-txt { display: flex; justify-content: space-between; font-size: min(2vh, 1.1vw); color: var(--muted); margin-top: 6px; }
+  .delta { position: absolute; top: 2.5vh; right: 1.6vw; font-size: min(6vh, 3.2vw); font-weight: 900; color: var(--heat); opacity: 0; }
+  .delta.show { animation: rise 1.6s ease forwards; }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(10px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-30px); } }
+
+  .lower { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6vw; margin-top: 1.6vw; flex: 0 0 31vh; min-height: 0; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 2vh 1.6vw; overflow: hidden; }
+  .panel h2 { font-size: min(1.9vh, 1vw); letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .row { display: flex; justify-content: space-between; align-items: center; padding: 0.9vh 0; border-top: 1px solid var(--line); font-size: min(2.7vh, 1.5vw); }
+  .row:first-of-type { border-top: 0; }
+  .tag { font-size: min(1.6vh, .9vw); font-weight: 800; letter-spacing: .1em; padding: 3px 7px; border-radius: 6px; background: #26262c; color: var(--muted); margin-left: 8px; }
+  .num { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .pos { color: #2ecc71; } .neg { color: #ff6b6b; }
+  .when { color: var(--muted); font-size: min(1.9vh, 1vw); margin-left: 10px; }
+  .empty { color: var(--muted); font-size: 14px; padding: 8px 0; }
+
+  .announce {
+    position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(.8);
+    background: linear-gradient(135deg, #ff7a2f, var(--heat)); color: #fff;
+    padding: clamp(22px, 3.5vw, 48px) clamp(28px, 5vw, 72px); border-radius: 24px;
+    text-align: center; box-shadow: 0 30px 120px rgba(255,90,54,.55);
+    opacity: 0; pointer-events: none; transition: opacity .35s, transform .35s cubic-bezier(.2,1.4,.4,1);
+    z-index: 10; max-width: 92vw;
+  }
+  .announce.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .announce .big { font-size: clamp(30px, 6vw, 92px); font-weight: 900; letter-spacing: -.02em; line-height: 1.05; }
+  .announce .small { font-size: clamp(13px, 1.4vw, 20px); font-weight: 700; letter-spacing: .25em; text-transform: uppercase; opacity: .85; margin-bottom: 10px; }
+
+  .milestone {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 45%, rgba(255,90,54,.55), rgba(11,11,13,.96) 65%);
+    opacity: 0; pointer-events: none; transition: opacity .4s; text-align: center;
+  }
+  .milestone.show { opacity: 1; }
+  .milestone.gold { background: radial-gradient(circle at 50% 45%, rgba(232,182,76,.6), rgba(11,11,13,.96) 65%); }
+  .milestone .m-num { font-size: min(42vh, 30vw); font-weight: 900; line-height: .85; letter-spacing: -.05em; color: #fff;
+    text-shadow: 0 0 80px rgba(255,90,54,.9); transform: scale(.4); }
+  .milestone.gold .m-num { color: var(--gold); text-shadow: 0 0 90px rgba(232,182,76,.9); }
+  .milestone.show .m-num { animation: slam .7s cubic-bezier(.2,1.6,.4,1) forwards; }
+  @keyframes slam { 0% { transform: scale(2.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  .milestone .m-title { font-size: min(11vh, 7vw); font-weight: 900; letter-spacing: .04em; text-transform: uppercase; margin-top: 2vh; }
+  .milestone .m-sub { font-size: min(4.6vh, 2.8vw); font-weight: 700; color: var(--text); opacity: .9; margin-top: 1.5vh; }
+  .milestone .m-tag { font-size: min(2.4vh, 1.4vw); letter-spacing: .4em; text-transform: uppercase; color: var(--heat); font-weight: 800; margin-bottom: 2vh; }
+  .milestone.gold .m-tag { color: var(--gold); }
+  #confetti { position: fixed; inset: 0; z-index: 21; pointer-events: none; }
+
+  footer { margin-top: 1.8vh; text-align: center; color: var(--muted); font-size: min(2.6vh, 1.4vw); flex: 0 0 auto; }
+  footer b { color: var(--text); }
+  @media (max-width: 760px) {
+    body { height: auto; overflow: auto; }
+    .lower { flex: none; }
+    .board, .lower { grid-template-columns: 1fr; }
+    .score { font-size: 84px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">SWTHZ</div>
+    <h1 id="title">Black Friday Showdown</h1>
+  </div>
+  <div class="live"><span class="dot" id="dot"></span><span id="status">Connecting…</span></div>
+</header>
+
+<section class="board" id="board"></section>
+
+<section class="lower">
+  <div class="panel"><h2>Top performers</h2><div id="leaders"></div></div>
+  <div class="panel"><h2>Live feed</h2><div id="feed"></div></div>
+</section>
+
+<div class="announce" id="announce"><div class="small">🔥 New sale</div><div class="big" id="announceText"></div></div>
+
+<div class="milestone" id="milestone">
+  <div class="m-tag">Daily milestone</div>
+  <div class="m-num" id="mNum"></div>
+  <div class="m-title" id="mTitle"></div>
+  <div class="m-sub" id="mSub"></div>
+</div>
+<canvas id="confetti"></canvas>
+
+<footer id="footer">Text <b>+1 PV</b>, <b>+1 Chandler</b> or <b>+1 Salt River</b> to log a sale</footer>
+
+<script>
+  // ---------- CONFIG ----------
+  // Hosted on Twilio: leave API_BASE as "".  Hosted on GitHub Pages: set it to your Twilio service URL,
+  // e.g. "https://swthz-bf-1234.twil.io"  (or add ?api=https://... to the page URL)
+  const API_BASE = "";
+  const POLL_MS = 3000;
+  // ----------------------------
+
+  const params = new URLSearchParams(location.search);
+  const api = (params.get('api') || API_BASE).replace(/\/$/, '');
+  const home = (params.get('loc') || '').toUpperCase();   // ?loc=CH highlights a studio's own card
+  const demo = params.has('demo') || location.protocol === 'file:';
+  const prev = {};
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  const ago = (ts) => {
+    const s = Math.max(0, (Date.now() - new Date(ts)) / 1000);
+    if (s < 60) return 'just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    return Math.floor(s / 3600) + 'h ago';
+  };
+  const short = { PV: 'PV', CH: 'CHANDLER', SR: 'SALT RIVER' };
+
+  // ---------- "Ava sold 2 at Chandler!" announcements ----------
+  const fullName = { PV: 'Paradise Valley', CH: 'Chandler', SR: 'Salt River' };
+  const seen = new Set();
+  let firstLoad = true;
+  const queue = [];
+  let showing = false;
+
+  // Daily milestones per person (counted in Arizona time on the server)
+  const MILESTONES = [
+    { at: 3,  title: 'Hat trick!',    gold: false },
+    { at: 5,  title: 'High five!',    gold: false },
+    { at: 7,  title: 'Lucky seven!',  gold: false },
+    { at: 10, title: 'Perfect 10!',   gold: true  },
+  ];
+
+  function announceNew(feed) {
+    const fresh = [];
+    for (const f of feed) {
+      const key = f.ts + '|' + f.name + '|' + f.code + '|' + f.n;
+      if (!seen.has(key)) { seen.add(key); fresh.push(f); }
+    }
+    if (firstLoad) { firstLoad = false; return; }      // don't replay old sales when the page opens
+    fresh.reverse().filter((f) => f.n > 0).forEach((f) => {
+      queue.push({ kind: 'sale', f });
+      const before = (f.dayCount || 0) - f.n;
+      const crossed = MILESTONES.filter((m) => before < m.at && f.dayCount >= m.at).pop();
+      if (crossed) queue.push({ kind: 'milestone', f, m: crossed });
+      else if (before >= 10) queue.push({ kind: 'milestone', f, m: { title: 'Unstoppable!', gold: true } });
+    });
+    if (!showing) nextAnnouncement();
+  }
+
+  function nextAnnouncement() {
+    const item = queue.shift();
+    if (!item) { showing = false; return; }
+    showing = true;
+    const f = item.f;
+    if (item.kind === 'sale') {
+      const box = document.getElementById('announce');
+      document.getElementById('announceText').textContent =
+        `${f.name} sold ${f.n} at ${fullName[f.code] || f.code}!`;
+      box.classList.add('show');
+      setTimeout(() => { box.classList.remove('show'); setTimeout(nextAnnouncement, 450); }, 3500);
+    } else {
+      const box = document.getElementById('milestone');
+      box.classList.toggle('gold', !!item.m.gold);
+      document.getElementById('mNum').textContent = f.dayCount;
+      document.getElementById('mTitle').textContent = item.m.title;
+      document.getElementById('mSub').textContent = `${f.name} · ${f.dayCount} sales today at ${fullName[f.code] || f.code}`;
+      box.classList.add('show');
+      confetti(item.m.gold ? 6500 : 5000, item.m.gold);
+      setTimeout(() => { box.classList.remove('show'); setTimeout(nextAnnouncement, 600); }, 6500);
+    }
+  }
+
+  function confetti(ms, gold) {
+    const c = document.getElementById('confetti');
+    const ctx = c.getContext('2d');
+    c.width = innerWidth; c.height = innerHeight;
+    const colors = gold ? ['#e8b64c', '#fff3c4', '#ffd36b', '#ffffff'] : ['#ff5a36', '#ff8a3d', '#e8b64c', '#ffffff', '#2ecc71'];
+    const parts = Array.from({ length: gold ? 320 : 220 }, () => ({
+      x: Math.random() * c.width, y: -20 - Math.random() * c.height * .6,
+      w: 6 + Math.random() * 10, h: 8 + Math.random() * 14,
+      vx: -2 + Math.random() * 4, vy: 3 + Math.random() * 6,
+      r: Math.random() * Math.PI, vr: -.2 + Math.random() * .4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+    }));
+    const end = performance.now() + ms;
+    (function frame(now) {
+      ctx.clearRect(0, 0, c.width, c.height);
+      for (const p of parts) {
+        p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        if (p.y > c.height + 20 && now < end - 1500) { p.y = -20; p.x = Math.random() * c.width; }
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+        ctx.fillStyle = p.color; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+      }
+      if (now < end) requestAnimationFrame(frame); else ctx.clearRect(0, 0, c.width, c.height);
+    })(performance.now());
+  }
+
+  function render(d) {
+    announceNew(d.feed || []);
+    if (d.title) document.getElementById('title').textContent = d.title.replace(/^SWTHZ\s*/i, '');
+    if (d.textNumber) document.getElementById('footer').innerHTML =
+      `Text <b>+1 PV</b>, <b>+1 Chandler</b> or <b>+1 Salt River</b> to <b>${esc(d.textNumber)}</b>`;
+
+    const ranks = ['1st place', '2nd place', '3rd place'];
+    const board = document.getElementById('board');
+    board.innerHTML = d.locations.map((l, i) => {
+      const pct = l.goal ? Math.min(100, Math.round((l.total / l.goal) * 100)) : 0;
+      const tied = i > 0 && l.total === d.locations[i - 1].total;
+      return `<div class="card r${i + 1} ${l.code === home ? 'home' : ''}" data-code="${l.code}">
+        <div class="delta"></div>
+        <div class="rank">${tied ? 'Tied' : ranks[i]}</div>
+        <div class="loc">${esc(l.name)}</div>
+        <div class="score">${l.total}</div>
+        ${l.goal ? `<div class="goal"><div class="bar"><div class="fill" style="width:${pct}%"></div></div>
+          <div class="goal-txt"><span>${pct}% of goal</span><span>Goal ${l.goal}</span></div></div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Pop animation on any studio whose score went up
+    d.locations.forEach((l) => {
+      if (prev[l.code] !== undefined && l.total > prev[l.code]) {
+        const card = board.querySelector(`[data-code="${l.code}"]`);
+        card.classList.add('bump');
+        const delta = card.querySelector('.delta');
+        delta.textContent = '+' + (l.total - prev[l.code]);
+        delta.classList.add('show');
+      }
+      prev[l.code] = l.total;
+    });
+
+    document.getElementById('leaders').innerHTML = d.leaders.length
+      ? d.leaders.slice(0, 6).map((p, i) => `<div class="row"><span>${i + 1}. ${esc(p.name)}<span class="tag">${short[p.code] || p.code}</span></span><span class="num">${p.total}</span></div>`).join('')
+      : '<div class="empty">No sales yet — first text takes the lead.</div>';
+
+    document.getElementById('feed').innerHTML = d.feed.length
+      ? d.feed.slice(0, 6).map((f) => `<div class="row"><span>${esc(f.name)}<span class="tag">${short[f.code] || f.code}</span></span>
+          <span><span class="num ${f.n > 0 ? 'pos' : 'neg'}">${f.n > 0 ? '+' : ''}${f.n}</span><span class="when">${ago(f.ts)}</span></span></div>`).join('')
+      : '<div class="empty">Waiting for the first text…</div>';
+  }
+
+  function setStatus(ok, text) {
+    document.getElementById('dot').classList.toggle('off', !ok);
+    document.getElementById('status').textContent = text;
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch(api + '/scores', { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status);
+      render(await r.json());
+      setStatus(true, 'Live · updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' }));
+    } catch (e) {
+      setStatus(false, 'Reconnecting…');
+    }
+  }
+
+  // ---------- DEMO MODE (?demo) ----------
+  function startDemo() {
+    const names = { PV: ['Christa', 'Mia'], CH: ['Lexi', 'Jade', 'Ava'], SR: ['Selina', 'Brynleigh'] };
+    const full = { PV: 'Paradise Valley', CH: 'Chandler', SR: 'Salt River' };
+    const goal = { PV: 40, CH: 40, SR: 40 };
+    const entries = [];
+    const dayCounts = {};
+    const tick = () => {
+      const code = ['PV', 'CH', 'SR'][Math.floor(Math.random() * 3)];
+      const name = names[code][Math.floor(Math.random() * names[code].length)];
+      const n = Math.random() < .8 ? 1 : 2;
+      dayCounts[name] = (dayCounts[name] || 0) + n;
+      entries.push({ code, name, n, ts: new Date().toISOString(), dayCount: dayCounts[name] });
+      const tot = { PV: 0, CH: 0, SR: 0 }, ppl = {};
+      entries.forEach((e) => { tot[e.code] += e.n; const k = e.name + e.code; ppl[k] = ppl[k] || { name: e.name, code: e.code, total: 0 }; ppl[k].total += e.n; });
+      render({
+        textNumber: '(480) 555-0199',
+        locations: Object.keys(tot).map((c) => ({ code: c, name: full[c], total: tot[c], goal: goal[c] })).sort((a, b) => b.total - a.total),
+        leaders: Object.values(ppl).sort((a, b) => b.total - a.total).slice(0, 10),
+        feed: entries.slice(-15).reverse(),
+      });
+      setStatus(true, 'Demo mode');
+    };
+    for (let i = 0; i < 12; i++) tick();
+    queue.length = 0;
+    setInterval(tick, 5000);
+  }
+
+  if (demo) startDemo(); else { poll(); setInterval(poll, POLL_MS); }
+</script>
+</body>
+</html>
