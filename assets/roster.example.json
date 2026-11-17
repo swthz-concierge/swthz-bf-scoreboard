@@ -1,0 +1,10 @@
+{
+  "+16025550101": { "name": "Selina", "studio": "SR", "role": "manager" },
+  "+16025550102": { "name": "Brynleigh", "studio": "SR" },
+  "+14805550103": { "name": "Lexi", "studio": "CH", "role": "manager" },
+  "+14805550104": { "name": "Jade", "studio": "CH" },
+  "+14805550107": { "name": "Ava", "studio": "CH" },
+  "+16025550105": { "name": "Christa", "studio": "PV", "role": "manager" },
+  "+16025550108": { "name": "Christie", "studio": "PV", "role": "admin" },
+  "+16025550106": { "name": "Jake", "studio": "SR", "role": "admin" }
+}
