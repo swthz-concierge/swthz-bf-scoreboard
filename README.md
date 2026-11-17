@@ -66,9 +66,10 @@ Console → **Phone Numbers → Active Numbers →** your number → **Messaging
 | `SCORE` | Texts back the current standings |
 | `153` *(managers)* | Sets your studio's total to 153 for end-of-day corrections. The change goes on the board, not on anyone's personal tally |
 | `SET PV 153` *(admins)* | Sets any studio's total |
+| `RESET ALL` *(admins)* | Wipes the whole board back to zero (great for testing) |
 
 There's a limit of 20 per text, so a typo like `+100` gets rejected.
 
 ## Before and after the sale
-Do a test run, then reset to zero by visiting:
+Do a test run, then text `RESET ALL` from an admin phone, or visit:
 `https://swthz-bf-XXXX.twil.io/reset?key=YOUR_ADMIN_KEY`
