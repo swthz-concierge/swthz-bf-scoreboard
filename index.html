@@ -160,7 +160,7 @@
 <canvas id="confetti"></canvas>
 
 <footer><span id="footer">Text <b>+1 PV</b>, <b>+1 Chandler</b> or <b>+1 Salt River</b> to log a sale</span>
-  <span class="raffle"> · 🎟 Each sale = 1 entry for Four Seasons dinner for 2 · <b id="raffleCount">0</b> entries</span></footer>
+  <span class="raffle"> · 🎟 Each sale = 1 entry to win a Four Seasons massage · <b id="raffleCount">0</b> entries</span></footer>
 
 <button class="edit-btn" id="editBtn" type="button">✎ Edit</button>
 <div class="edit" id="edit">
@@ -198,7 +198,7 @@
       <div class="edit-sec" id="sec-raffle">
         <p><b id="rafEntries">0</b> raffle entries (1 per SA sale). Drawing shows the winner on every board.</p>
         <p class="muted" id="rafLast"></p>
-        <p class="rowctl"><button type="button" class="primary" id="drawBtn">Draw Four Seasons winner</button></p>
+        <p class="rowctl"><button type="button" class="primary" id="drawBtn">Draw Four Seasons massage winner</button></p>
       </div>
       <div class="edit-sec" id="sec-reset">
         <p>Wipes every sale, correction and raffle draw. This can't be undone.</p>
@@ -277,7 +277,7 @@
     } else if (item.kind === 'draw') {
       const box = document.getElementById('milestone');
       box.classList.add('gold');
-      box.querySelector('.m-tag').textContent = 'Four Seasons Scottsdale · Dinner for 2';
+      box.querySelector('.m-tag').textContent = 'Four Seasons Scottsdale · Massage raffle';
       document.getElementById('mNum').textContent = '🍾';
       document.getElementById('mTitle').textContent = `${f.name} wins!`;
       document.getElementById('mSub').textContent = `Raffle winner · ${f.entries} of ${f.of} entries`;
@@ -505,7 +505,7 @@
       }
       if (t.id === 'drawBtn') {
         if (armed !== t) { armed = t; t.textContent = 'Click again to draw'; return; }
-        t.textContent = 'Draw Four Seasons winner'; return run('draw');
+        t.textContent = 'Draw Four Seasons massage winner'; return run('draw');
       }
       if (t.id === 'resetBtn') return run('reset', { confirm: $('resetConfirm').value.trim() });
     };
