@@ -24,6 +24,19 @@
   .dot.off { background: #888; animation: none; }
   @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(46,204,113,0); } 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); } }
 
+  .msgbar { display: none; flex: 0 0 auto; align-items: center; gap: 1.4vw; margin-bottom: 2vh; padding: 2vh 2vw;
+    border-radius: 18px; background: linear-gradient(135deg, #ff7a2f, var(--heat)); color: #fff;
+    box-shadow: 0 0 60px rgba(255,90,54,.35); animation: msgpulse 2.4s ease-in-out infinite; }
+  .msgbar.show { display: flex; animation: msgin .6s cubic-bezier(.2,1.4,.4,1), msgpulse 2.4s ease-in-out .6s infinite; }
+  .msgbar .mi { font-size: min(6vh, 3.4vw); line-height: 1; }
+  .msgbar .mt { font-size: min(4.6vh, 2.7vw); font-weight: 900; line-height: 1.15; letter-spacing: -.01em; }
+  @keyframes msgin { 0% { transform: translateY(-20px) scale(.96); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes msgpulse { 0%, 100% { box-shadow: 0 0 40px rgba(255,90,54,.3); } 50% { box-shadow: 0 0 90px rgba(255,90,54,.6); } }
+  body.has-msg .score { font-size: min(15vh, 10vw); }
+  body.has-msg .loc { font-size: min(4vh, 2.4vw); }
+  body.has-msg .card { padding: 2vh 2vw; }
+  body.has-msg .lower { flex-basis: 28vh; }
+  body.has-msg .panel .row:nth-of-type(n+5) { display: none; }
   .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vw; flex: 1 1 auto; min-height: 0; }
   .card {
     background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
@@ -141,6 +154,8 @@
   </div>
   <div class="live"><span class="dot" id="dot"></span><span id="status">Connecting…</span></div>
 </header>
+
+<div class="msgbar" id="msgbar"><span class="mi">📣</span><span class="mt" id="msgText"></span></div>
 
 <section class="board" id="board"></section>
 
@@ -325,6 +340,15 @@
   function render(d) {
     announceNew(d.feed || []);
     document.getElementById('raffleCount').textContent = d.raffleEntries || 0;
+    const bar = document.getElementById('msgbar');
+    const msgText = d.message && d.message.text ? d.message.text : '';
+    if (msgText !== bar.dataset.text) {
+      bar.dataset.text = msgText;
+      document.getElementById('msgText').textContent = msgText;
+      bar.classList.remove('show');
+      if (msgText) { void bar.offsetWidth; bar.classList.add('show'); }
+      document.body.classList.toggle('has-msg', !!msgText);
+    }
     if (d.draw && d.draw.ts !== lastDrawTs) {
       if (lastDrawTs !== null || (Date.now() - new Date(d.draw.ts)) < 60000) {
         queue.unshift({ kind: 'draw', f: d.draw });
@@ -410,6 +434,7 @@
         leaders: Object.values(ppl).sort((a, b) => b.total - a.total).slice(0, 10),
         feed: entries.slice(-15).reverse(),
         raffleEntries: entries.reduce((t, e) => t + e.n, 0),
+        message: { text: 'First person to sell 3 packs today gets a $10 Starbucks gift card!' },
       });
       setStatus(true, 'Demo mode');
     };
