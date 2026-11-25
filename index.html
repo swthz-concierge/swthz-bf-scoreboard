@@ -742,7 +742,7 @@
     };
 
     say(dayLine());
-    setInterval(() => { if (Date.now() > busyUntil) say(shoutout()); }, 11000);
+    setInterval(() => { if (Date.now() > busyUntil) say(shoutout()); }, 60000);
     setInterval(() => { if (Math.random() < 0.5) move('jump', 700); }, 23000);
 
     // ---------- Easter eggs ----------
